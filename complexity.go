@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
+	"sort"
 	"strings"
 )
 
@@ -29,14 +30,48 @@ func main() {
 	var length int64
 	length = int64(len(str))
 	fmt.Println("Characters: ", length)
-	bs_reps := 100
-	for i := 0; i <= bs_reps; i++ {
-		ran := gen_cryp_num(length)
-		end := ran + 3
-		fmt.Println("Ran: ", ran, " End: ", end)
-		fmt.Printf("%d, %s , %d\n", i, str[ran:end], ran)
 
+	// initialize counter hash to count n-mers
+	var counter map[string]int
+	counter = make(map[string]int)
+
+	// number of bs reps to extract
+	bs_reps := 500
+	for i := 0; i <= bs_reps; i++ {
+		// generate random number for start point of substring
+		ran := gen_cryp_num(length)
+		// add length of n-mer to substring position
+		end := ran + 3
+		// check to make sure substring does not extend beyond string length
+		if end < length {
+			// select substring
+			substr := str[ran:end]
+			// print substr stats
+			//fmt.Println("Ran: ", ran, " End: ", end)
+			//fmt.Printf("%d, %s , %d\n", i, substr, ran)
+
+			// check if substr has been extracted previously
+			_, check_sub := counter[substr]
+			// if exists, add 1. if not, set to 1
+			if check_sub == true {
+				counter[substr] = counter[substr] + 1
+			} else {
+				counter[substr] = 1
+			}
+		}
 	}
+	var nmer_counts []int
+	nmer_counts = make([]int, 1)
+	// print results of hash collection
+	for _, value := range counter {
+		nmer_counts = append(nmer_counts, value)
+
+		//fmt.Println("Key:", key, "Value:", value)
+	}
+
+	//sort.Ints(nmer_counts)
+	sort.Sort(sort.Reverse(sort.IntSlice(nmer_counts)))
+	fmt.Println(nmer_counts)
 }
 
 // Crypto rand int number
