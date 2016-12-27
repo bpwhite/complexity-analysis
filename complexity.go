@@ -4,8 +4,12 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/big"
+	"os"
+	"os/exec"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -31,12 +35,12 @@ func main() {
 	length = int64(len(str))
 	fmt.Println("Characters: ", length)
 
-	// initialize counter hash to count n-mers
-	var counter map[string]int
-	counter = make(map[string]int)
+	// initialize counter map to count n-mers
+	var counter_map map[string]int
+	counter_map = make(map[string]int)
 
 	// number of bs reps to extract
-	bs_reps := 500
+	bs_reps := 5000
 	for i := 0; i <= bs_reps; i++ {
 		// generate random number for start point of substring
 		ran := gen_cryp_num(length)
@@ -51,19 +55,21 @@ func main() {
 			//fmt.Printf("%d, %s , %d\n", i, substr, ran)
 
 			// check if substr has been extracted previously
-			_, check_sub := counter[substr]
+			_, check_sub := counter_map[substr]
 			// if exists, add 1. if not, set to 1
 			if check_sub == true {
-				counter[substr] = counter[substr] + 1
+				counter_map[substr] = counter_map[substr] + 1
 			} else {
-				counter[substr] = 1
+				counter_map[substr] = 1
 			}
 		}
 	}
+	// hold the counts of nmers
 	var nmer_counts []int
 	nmer_counts = make([]int, 1)
+
 	// print results of hash collection
-	for _, value := range counter {
+	for _, value := range counter_map {
 		nmer_counts = append(nmer_counts, value)
 
 		//fmt.Println("Key:", key, "Value:", value)
@@ -72,6 +78,43 @@ func main() {
 	//sort.Ints(nmer_counts)
 	sort.Sort(sort.Reverse(sort.IntSlice(nmer_counts)))
 	fmt.Println(nmer_counts)
+
+	// output nmer counts for histogram
+	f, err := os.Create("temp.txt")
+	check(err)
+	defer f.Close()
+
+	for _, nmer := range nmer_counts {
+		fmt.Println(nmer)
+		t := strconv.Itoa(nmer)
+		t = t + "\n"
+		f.WriteString(t)
+		//fmt.Printf("wrote %d bytes\n", n3)
+	}
+
+	f.Sync()
+	// end nmer output
+
+	os.Exit(3)
+
+	for index, count := range nmer_counts[0:25] {
+		for key, value := range counter_map {
+			if value == count {
+				fmt.Println("[", index, "] (", key, ")\t", value)
+				delete(counter_map, key)
+				break
+			}
+
+			//fmt.Println("Key:", key, "Value:", value)
+		}
+	}
+
+	out, err := exec.Command("cmd", "/C", "dir", "C:\\").Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("The date is %s\n", out)
+
 }
 
 // Crypto rand int number
@@ -83,4 +126,10 @@ func gen_cryp_num(input int64) (n int64) {
 	n = nBig.Int64()
 	//fmt.Printf("Here is a random %T in [0,27) : %d\n", n, n)
 	return
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
