@@ -33,6 +33,16 @@ func main() {
 
 	// capture words as fields
 	words := strings.Fields(str)
+	block_list := []string{"and", "the", "are", "for", "of", "is", "to"}
+	for i, word := range words {
+		for _, b := range block_list {
+			if word == b {
+				//fmt.Println(word)
+				words = words[:i+copy(words[i:], words[i+1:])]
+			}
+		}
+	}
+	//os.Exit(3)
 
 	// clean string for processing
 	str = strings.Replace(str, " ", "", -1)
@@ -121,6 +131,7 @@ func main() {
 					if strings.Contains(word, key) {
 						fmt.Println("\t", word)
 					}
+					// only report nmers found in words //
 				}
 				break
 			}
