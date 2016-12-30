@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io/ioutil"
-	"log"
+
 	"math/big"
 	"os"
 	"os/exec"
@@ -14,23 +14,32 @@ import (
 )
 
 func main() {
-	b, err := ioutil.ReadFile("file.txt") // just pass the file name
+	// parameters
+	// number of bs reps to extract
+	bs_reps := 5000
+
+	// nmer size (initial/default)
+	var nmer_size int64
+	nmer_size = 3
+
+	// input file text
+	b, err := ioutil.ReadFile("file.txt")
 	if err != nil {
 		fmt.Print(err)
 	}
 
-	//fmt.Println(b) // print the content as 'bytes'
+	// convert content to a 'string'
+	str := string(b)
 
-	str := string(b) // convert content to a 'string'
+	// capture words as fields
+	words := strings.Fields(str)
 
-	//fmt.Println(str) // print the content as a 'string'
+	// clean string for processing
 	str = strings.Replace(str, " ", "", -1)
 	str = strings.Replace(str, "\r\n", "", -1)
 	fmt.Println(str)
 
-	//words := strings.Fields(str)
-
-	//fmt.Println(words, len(words)) // [one two three four] 4
+	fmt.Println("Words: ", len(words))
 	var length int64
 	length = int64(len(str))
 	fmt.Println("Characters: ", length)
@@ -39,13 +48,11 @@ func main() {
 	var counter_map map[string]int
 	counter_map = make(map[string]int)
 
-	// number of bs reps to extract
-	bs_reps := 5000
 	for i := 0; i <= bs_reps; i++ {
 		// generate random number for start point of substring
 		ran := gen_cryp_num(length)
 		// add length of n-mer to substring position
-		end := ran + 3
+		end := ran + nmer_size
 		// check to make sure substring does not extend beyond string length
 		if end < length {
 			// select substring
@@ -77,7 +84,7 @@ func main() {
 
 	//sort.Ints(nmer_counts)
 	sort.Sort(sort.Reverse(sort.IntSlice(nmer_counts)))
-	fmt.Println(nmer_counts)
+	//fmt.Println(nmer_counts)
 
 	// output nmer counts for histogram
 	f, err := os.Create("temp.txt")
@@ -85,7 +92,7 @@ func main() {
 	defer f.Close()
 
 	for _, nmer := range nmer_counts {
-		fmt.Println(nmer)
+		//fmt.Println(nmer)
 		t := strconv.Itoa(nmer)
 		t = t + "\n"
 		f.WriteString(t)
@@ -95,25 +102,32 @@ func main() {
 	f.Sync()
 	// end nmer output
 
-	os.Exit(3)
+	exec.Command("cmd", "/C", "gnuplot gnuplot_test.txt", "C:\\").Output()
 
+	/*
+		out, err := exec.Command("cmd", "/C", "gnuplot gnuplot_test.txt", "C:\\").Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("The date is %s\n", out)
+	*/
+	fmt.Println("Test")
 	for index, count := range nmer_counts[0:25] {
 		for key, value := range counter_map {
 			if value == count {
 				fmt.Println("[", index, "] (", key, ")\t", value)
 				delete(counter_map, key)
+				for _, word := range words {
+					if strings.Contains(word, key) {
+						fmt.Println("\t", word)
+					}
+				}
 				break
 			}
 
 			//fmt.Println("Key:", key, "Value:", value)
 		}
 	}
-
-	out, err := exec.Command("cmd", "/C", "dir", "C:\\").Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("The date is %s\n", out)
 
 }
 
