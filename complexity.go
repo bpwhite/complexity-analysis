@@ -7,7 +7,6 @@ import (
 
 	"math/big"
 	"os"
-	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
@@ -27,6 +26,11 @@ func main() {
 	if err != nil {
 		fmt.Print(err)
 	}
+
+	// output logs
+	f, err := os.Create("temp.txt")
+	check(err)
+	defer f.Close()
 
 	// convert content to a 'string'
 	str := string(b)
@@ -58,7 +62,7 @@ func main() {
 	str = strings.Join(words, " ")
 	str = strings.Replace(str, " ", "", -1)
 	str = strings.Replace(str, "\r\n", "", -1)
-	fmt.Println(str)
+	f.WriteString(str)
 
 	fmt.Println("Words: ", len(words))
 	var length int64
@@ -103,49 +107,25 @@ func main() {
 		//fmt.Println("Key:", key, "Value:", value)
 	}
 
-	//sort.Ints(nmer_counts)
 	sort.Sort(sort.Reverse(sort.IntSlice(nmer_counts)))
-	//fmt.Println(nmer_counts)
 
-	// output nmer counts for histogram
-	f, err := os.Create("temp.txt")
-	check(err)
-	defer f.Close()
-
-	for _, nmer := range nmer_counts {
-		//fmt.Println(nmer)
-		t := strconv.Itoa(nmer)
-		t = t + "\n"
-		f.WriteString(t)
-		//fmt.Printf("wrote %d bytes\n", n3)
-	}
-
-	f.Sync()
-	// end nmer output
-
-	exec.Command("cmd", "/C", "gnuplot gnuplot_test.txt", "C:\\").Output()
-
-	/*
-		out, err := exec.Command("cmd", "/C", "gnuplot gnuplot_test.txt", "C:\\").Output()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("The date is %s\n", out)
-	*/
 	word_pos := make([]int, len(words))
 	// loop through sorted nmer count ints
-	for index, count := range nmer_counts[0:25] {
+	for _, count := range nmer_counts[0:25] {
 		// loop through map containing nmer and count
 		for key, value := range counter_map {
 			// if value matches current count, print mapping
 			if value == count {
-				fmt.Println("[", index, "] (", key, ")\t", value)
+				v_outp := []string{"(", key, ")\t", strconv.Itoa(value)}
+				f.WriteString(strings.Join(v_outp, ""))
+
 				delete(counter_map, key)
 				// check through the list of words to see what words
 				// the nmer is found in
 				for pos, word := range words {
 					if strings.Contains(word, key) {
-						fmt.Println("\t", word, "(", pos, ")")
+						pos_outp := []string{"\t", word, "(", strconv.Itoa(pos), ")"}
+						f.WriteString(strings.Join(pos_outp, ""))
 						word_pos[pos] = 1
 					}
 					// only report nmers found in words //
@@ -156,11 +136,13 @@ func main() {
 		}
 	}
 
-	for pos, word := range words {
-		fmt.Println("(", pos, ")", word)
-	}
+	//for pos, word := range words {
+
+	//f.WriteString("(", pos, ")", word)
+	//}
 	fmt.Println(word_pos)
 
+	f.Sync()
 }
 
 // Crypto rand int number
