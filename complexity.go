@@ -33,18 +33,29 @@ func main() {
 
 	// capture words as fields
 	words := strings.Fields(str)
+	words_cleared := []string{""}
+
 	block_list := []string{"and", "the", "are", "for", "of", "is", "to"}
-	for i, word := range words {
+	for _, word := range words {
+		block := 0
 		for _, b := range block_list {
-			if word == b {
+			if word == b || len(word) <= 2 {
 				//fmt.Println(word)
-				words = words[:i+copy(words[i:], words[i+1:])]
+				//words = words[:i+copy(words[i:], words[i+1:])]
+				block = 1
+				break
 			}
 		}
+		if block == 0 {
+			words_cleared = append(words_cleared, word)
+		}
 	}
+	//fmt.Println(words_cleared)
+	words = words_cleared
 	//os.Exit(3)
 
 	// clean string for processing
+	str = strings.Join(words, " ")
 	str = strings.Replace(str, " ", "", -1)
 	str = strings.Replace(str, "\r\n", "", -1)
 	fmt.Println(str)
@@ -121,24 +132,34 @@ func main() {
 		}
 		fmt.Printf("The date is %s\n", out)
 	*/
-	fmt.Println("Test")
+	word_pos := make([]int, len(words))
+	// loop through sorted nmer count ints
 	for index, count := range nmer_counts[0:25] {
+		// loop through map containing nmer and count
 		for key, value := range counter_map {
+			// if value matches current count, print mapping
 			if value == count {
 				fmt.Println("[", index, "] (", key, ")\t", value)
 				delete(counter_map, key)
-				for _, word := range words {
+				// check through the list of words to see what words
+				// the nmer is found in
+				for pos, word := range words {
 					if strings.Contains(word, key) {
-						fmt.Println("\t", word)
+						fmt.Println("\t", word, "(", pos, ")")
+						word_pos[pos] = 1
 					}
 					// only report nmers found in words //
 				}
 				break
 			}
-
 			//fmt.Println("Key:", key, "Value:", value)
 		}
 	}
+
+	for pos, word := range words {
+		fmt.Println("(", pos, ")", word)
+	}
+	fmt.Println(word_pos)
 
 }
 
