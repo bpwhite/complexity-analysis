@@ -15,14 +15,14 @@ import (
 func main() {
 	// parameters
 	// number of bs reps to extract
-	bs_reps := 10
+	bs_reps := 500
 	subs_samples := 5000
 	// nmer size (initial/default)
 	var nmer_size int64
 	nmer_size = 3
 
 	// input file text
-	b, err := ioutil.ReadFile("file2.txt")
+	b, err := ioutil.ReadFile("file4.txt")
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -39,11 +39,16 @@ func main() {
 	words := strings.Fields(str)
 	words_cleared := []string{""}
 
-	block_list := []string{"and", "the", "are", "for", "of", "is", "to"}
+	block_list := []string{
+		"and", "the", "are", "for", "of",
+		"is", "to", "this", "very", "they",
+		"that", "which", "thing", "further",
+		"way", "have", "ing", "their",
+	}
 	for _, word := range words {
 		block := 0
 		for _, b := range block_list {
-			if word == b || len(word) <= 2 {
+			if strings.ToLower(word) == b || len(word) <= 2 {
 				//fmt.Println(word)
 				//words = words[:i+copy(words[i:], words[i+1:])]
 				block = 1
@@ -116,16 +121,16 @@ func main() {
 			for key, value := range counter_map {
 				// if value matches current count, print mapping
 				if value == count {
-					v_outp := []string{"(", key, ")\t", strconv.Itoa(value), "\n"}
-					f.WriteString(strings.Join(v_outp, ""))
+					// v_outp := []string{"(", key, ")\t", strconv.Itoa(value), "\n"}
+					//f.WriteString(strings.Join(v_outp, ""))
 
 					delete(counter_map, key)
 					// check through the list of words to see what words
 					// the nmer is found in
 					for pos, word := range words {
 						if strings.Contains(word, key) {
-							pos_outp := []string{"\t", word, "(", strconv.Itoa(pos), ")", "\n"}
-							f.WriteString(strings.Join(pos_outp, ""))
+							// pos_outp := []string{"\t", word, "(", strconv.Itoa(pos), ")", "\n"}
+							//f.WriteString(strings.Join(pos_outp, ""))
 							word_pos[pos] = 1
 						}
 						// only report nmers found in words //
@@ -139,7 +144,7 @@ func main() {
 		for i, word := range words {
 			for j, word_pos := range word_pos {
 				if i == j {
-					fmt.Println(word_pos, "\t", word)
+					//fmt.Println(word_pos, "\t", word)
 					if word_pos == 1 {
 						// check if word has been found previously
 						_, check_word := word_map[word]
@@ -153,12 +158,38 @@ func main() {
 				}
 			}
 		}
-		fmt.Println(word_pos)
 	}
-	//f.WriteString("(", pos, ")", word)
-	//}
 
-	fmt.Println(word_map)
+	//fmt.Println(word_map)
+	//os.Exit(3)
+
+	// hold the counts of words
+	var word_counts []int
+	word_counts = make([]int, 1)
+
+	// store results of hash collection in array
+	for _, value := range word_map {
+		word_counts = append(word_counts, value)
+	}
+
+	// sort word counts by greatest found
+	sort.Sort(sort.Reverse(sort.IntSlice(word_counts)))
+
+	// loop through sorted word count ints
+	for _, count := range word_counts[0:20] {
+		// loop through map containing word and count
+		for key, value := range word_map {
+			// if value matches current count, print mapping
+			if value == count {
+				v_outp := []string{" ", key, " (", strconv.Itoa(value), "),"}
+				fmt.Println(v_outp)
+				//f.WriteString(strings.Join(v_outp, ""))
+				delete(word_map, key)
+				break
+			}
+		}
+	}
+
 	f.Sync()
 }
 
